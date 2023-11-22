@@ -24,6 +24,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private final JwtService jwtService;
 	private final UserDetailsService userDetailsService;
 	private final TokenRepository tokenRepository;
+	private final JwtHelper jwtHelper;
 	@Override
 	protected void doFilterInternal(
 			@NonNull HttpServletRequest request,
@@ -31,12 +32,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			@NonNull FilterChain filterChain) throws ServletException, IOException {
 		final String authHeader = request.getHeader("Authorization");
 
-		if (!hasToken(authHeader)) {
+		if (!jwtHelper.hasToken(authHeader)) {
 			filterChain.doFilter(request, response);
 			return;
 		}
 
-		final String jwt = extractJwt(authHeader);
+		final String jwt = jwtHelper.extractJwt(authHeader);
 
 		String userEmail = jwtService.extractUsername(jwt);
 
@@ -60,14 +61,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		}
 
 		filterChain.doFilter(request, response);
-	}
-
-	private String extractJwt(String authHeader) {
-		return authHeader.substring(7);
-	}
-
-	private boolean hasToken(String authHeader) {
-		return authHeader != null && authHeader.startsWith("Bearer ");
 	}
 
 	private boolean hasUserEmail(String userEmail) {

@@ -14,15 +14,16 @@ import org.springframework.stereotype.Service;
 public class LogoutService implements LogoutHandler {
 
 	private final TokenRepository tokenRepository;
+	private final JwtHelper jwtHelper;
 	@Override
 	public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
 		final String authHeader = request.getHeader("Authorization");
 
-		if (!hasToken(authHeader)) {
+		if (!jwtHelper.hasToken(authHeader)) {
 			return;
 		}
 
-		final String jwt = extractJwt(authHeader);
+		final String jwt = jwtHelper.extractJwt(authHeader);
 
 		Token storedToken = tokenRepository.findByTokenValue(jwt).orElse(null);
 
@@ -32,11 +33,5 @@ public class LogoutService implements LogoutHandler {
 
 			tokenRepository.save(storedToken);
 		}
-	}
-	private String extractJwt(String authHeader) {
-		return authHeader.substring(7);
-	}
-	private boolean hasToken(String authHeader) {
-		return authHeader != null && authHeader.startsWith("Bearer ");
 	}
 }
